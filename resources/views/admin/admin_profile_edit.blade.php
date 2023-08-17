@@ -1,82 +1,87 @@
 @extends('admin.admin_master')
-
+@section('site_title')
+    Profile Edit | Devland
+@endsection
 @section('admin')
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <div class="page-content">
         <div class="container-fluid">
-
+            <!-- start page title -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                        <h4 class="mb-sm-0">Edit Profile</h4>
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item"><a href="javascript: void(0);">Devland</a></li>
+                                <li class="breadcrumb-item active">Edit Profile</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-body">
-                            <h4 class="card-title">Edit Profile</h4>
-                            <form action="{{ route('store.profile') }}" method="POST" enctype="multipart/form-data">
-                                @csrf
-                                <div class="row mb-3">
-                                    <label for="example-text-input" class="col-sm-2 col-form-label">Name</label>
-                                    <div class="col-sm-10">
-                                        <input class="form-control" type="text" name="name"
-                                            value="{{ $editData->name }}" id="example-text-input">
-                                    </div>
+                        <form class="card-body" method="POST" action="{{ route('update.profile') }}"
+                            enctype="multipart/form-data">
+                            @csrf
+                            <h4 class="card-title">Update profile</h4>
+                            <p class="card-title-desc">Update your account's profile information and email address.</p>
+                            <div class="row mb-3">
+                                <label for="username" class="col-sm-2 col-form-label">Username</label>
+                                <div class="col-sm-10">
+                                    <input class="form-control" type="text" id="username" name="username"
+                                        value="{{ $editData->username }}" disabled>
                                 </div>
-                                <!-- end row -->
-
-                                <div class="row mb-3">
-                                    <label for="example-text-input" class="col-sm-2 col-form-label">Email</label>
-                                    <div class="col-sm-10">
-                                        <input class="form-control" type="email" name="email"
-                                            value="{{ $editData->email }}" id="example-text-input">
-                                    </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="name" class="col-sm-2 col-form-label">Name</label>
+                                <div class="col-sm-10">
+                                    <input class="form-control" type="text" id="name" name="name"
+                                        value="{{ $editData->name }}">
                                 </div>
-                                <!-- end row -->
-
-                                <div class="row mb-3">
-                                    <label for="example-text-input" class="col-sm-2 col-form-label">User Name</label>
-                                    <div class="col-sm-10">
-                                        <input class="form-control" type="text" name="username"
-                                            value="{{ $editData->username }}" id="example-text-input">
-                                    </div>
+                            </div>
+                            <!-- end row -->
+                            <div class="row mb-3">
+                                <label for="email" class="col-sm-2 col-form-label">Email</label>
+                                <div class="col-sm-10">
+                                    <input class="form-control" type="email" id="email" name="email"
+                                        value="{{ $editData->email }}">
                                 </div>
-                                <!-- end row -->
-
-                                <div class="row mb-3">
-                                    <label for="example-text-input" class="col-sm-2 col-form-label">Profile Image</label>
-                                    <div class="col-sm-10">
-                                        <input class="form-control" type="file" id="image" name="profile_image">
-                                    </div>
+                            </div>
+                            <!-- end row -->
+                            <div class="row mb-3">
+                                <label for="p_image" class="col-sm-2 col-form-label">Profile image</label>
+                                <div class="col-sm-10">
+                                    <input class="form-control" type="file" id="p_image" name="profile_image">
                                 </div>
-
-                                <div class="row mb-3">
-                                    <label for="example-text-input" class="col-sm-2 col-form-label"></label>
-                                    <div class="col-sm-10">
-                                        <div>
-                                            <img src="{{ !empty($editData->profile_image) ? url('upload/admin_images/' . $editData->profile_image) : url('upload/noimage.jpg') }}"
-                                                id="showimage" alt="avatar-5" class="rounded avatar-lg">
-
-                                        </div>
-                                    </div>
-                                    <!-- end row -->
+                            </div>
+                            <!-- end row -->
+                            <div class="row mb-3">
+                                <label class="col-sm-2 col-form-label"></label>
+                                <div class="col-sm-10">
+                                    <img class="rounded avatar-lg"
+                                        src="{{ !empty($editData->profile_image) ? url('upload/admin_images/' . $editData->profile_image) : url('upload/no_image.jpg') }}"
+                                        alt="{{ $editData->name }}" id="showImage">
                                 </div>
-                                <input type="submit" class="btn btn-info waves-effect waves-light" value="Update Profile">
-                            </form>
-                        </div>
+                            </div>
+                            <button type="submit" class="btn btn-info waves-effect waves-light px-4 rounded mt-3">Update
+                                Profile</button>
+                        </form>
                     </div>
                 </div> <!-- end col -->
             </div>
-
         </div>
     </div>
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
-            $("#image").change(function(e) {
+            $("#p_image").change(function(e) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
-                    // Here I need to use $(this) to target only the second list item's img.preview
-                    $('#showimage').attr('src', e.target.result);
-                };
-
-                reader.readAsDataURL(e.target.files[0]);
+                    $('#showImage').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(e.target.files['0']);
             });
         });
     </script>

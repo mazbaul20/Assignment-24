@@ -4,24 +4,22 @@
 <head>
 
     <meta charset="utf-8" />
-    <title>Login | Upcube - Admin & Dashboard Template</title>
+    <title>Login | Devland</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
     <meta content="Themesdesign" name="author" />
-
     <!-- App favicon -->
-    <link rel="shortcut icon" href="  {{ asset('backend/assets/images/favicon.ico') }}">
-
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    {{-- Toastr css cdn --}}
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css">
     <!-- Bootstrap Css -->
-    <link href=" {{ asset('backend/assets/css/bootstrap.min.css') }}" id="bootstrap-style" rel="stylesheet"
+    <link href="{{ asset('backend/assets/css/bootstrap.min.css') }}" id="bootstrap-style" rel="stylesheet"
         type="text/css" />
     <!-- Icons Css -->
-    <link href=" {{ asset('backend/assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('backend/assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- App Css-->
-    <link href=" {{ asset('backend/assets/css/app.min.css') }}" id="app-style" rel="stylesheet" type="text/css" />
-    <!-- Toastr -->
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <link href="{{ asset('backend/assets/css/app.min.css') }}" id="app-style" rel="stylesheet" type="text/css" />
+
 </head>
 
 <body class="auth-body-bg">
@@ -33,11 +31,9 @@
 
                     <div class="text-center mt-4">
                         <div class="mb-3">
-                            <a href="index.html" class="auth-logo">
-                                <img src="{{ asset('backend/assets/images/logo-dark.png') }}" height="30"
-                                    class="logo-dark mx-auto" alt="">
-                                <img src="{{ asset('backend/assets/images/logo-light.png') }}" height="30"
-                                    class="logo-light mx-auto" alt="">
+                            <a href="{{ url('/') }}" class="auth-logo">
+                                <img src="{{ asset('backend/assets/images/logo_black.svg') }}" height="30"
+                                    class="logo-dark mx-auto" alt="Logo">
                             </a>
                         </div>
                     </div>
@@ -45,24 +41,40 @@
                     <h4 class="text-muted text-center font-size-18"><b>Sign In</b></h4>
 
                     <div class="p-3">
-
                         <form class="form-horizontal mt-3" method="POST" action="{{ route('login') }}">
                             @csrf
-
+                            @if (count($errors))
+                                @foreach ($errors->all() as $error)
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        {{ $error }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
+                                    </div>
+                                @endforeach
+                            @endif
                             <div class="form-group mb-3 row">
                                 <div class="col-12">
-                                    <input class="form-control" id="username" name="username" type="text"
-                                        required="" placeholder="Username">
+                                    <input class="form-control" type="text" required="" id="username"
+                                        name="username" placeholder="Username">
                                 </div>
                             </div>
 
                             <div class="form-group mb-3 row">
                                 <div class="col-12">
-                                    <input class="form-control" id="password" name="password" type="password"
-                                        required="" placeholder="Password">
+                                    <input class="form-control" type="password" required="" id="password"
+                                        name="password" placeholder="Password">
                                 </div>
                             </div>
 
+                            <div class="form-group mb-3 row">
+                                <div class="col-12">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="remember_me"
+                                            name="remember">
+                                        <label class="form-label ms-1" for="remember_me">Remember me</label>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="form-group mb-3 text-center row mt-3 pt-1">
                                 <div class="col-12">
@@ -73,8 +85,10 @@
 
                             <div class="form-group mb-0 row mt-2">
                                 <div class="col-sm-7 mt-3">
-                                    <a href="{{ route('password.request') }}" class="text-muted"><i
-                                            class="mdi mdi-lock"></i> Forgot your password?</a>
+                                    @if (Route::has('password.request'))
+                                        <a href="{{ route('password.request') }}" class="text-muted"><i
+                                                class="mdi mdi-lock"></i> Forgot your password?</a>
+                                    @endif
                                 </div>
                                 <div class="col-sm-5 mt-3">
                                     <a href="{{ route('register') }}" class="text-muted"><i
@@ -101,33 +115,32 @@
     <script src="{{ asset('backend/assets/libs/node-waves/waves.min.js') }}"></script>
 
     <script src="{{ asset('backend/assets/js/app.js') }}"></script>
-    <!-- Toastr js-->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-
-    @if (session()->has('message'))
-        <script>
-            var type = "{{ session('alert-type', 'info') }}";
-            var message = "{{ session('message') }}";
-
+    {{-- Toastr cdn --}}
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    {{-- Toastr script  --}}
+    <script>
+        @if (Session::has('message'))
+            var type = "{{ Session::get('alert-type', 'info') }}"
             switch (type) {
                 case 'info':
-                    toastr.info(message);
+                    toastr.info(" {{ Session::get('message') }} ");
                     break;
+
                 case 'success':
-                    toastr.success(message);
+                    toastr.success(" {{ Session::get('message') }} ");
                     break;
+
                 case 'warning':
-                    toastr.warning(message);
+                    toastr.warning(" {{ Session::get('message') }} ");
                     break;
+
                 case 'error':
-                    toastr.error(message);
-                    break;
-                default:
-                    toastr.info(message);
+                    toastr.error(" {{ Session::get('message') }} ");
                     break;
             }
-        </script>
-    @endif
+        @endif
+    </script>
+
 </body>
 
 </html>

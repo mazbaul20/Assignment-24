@@ -3,78 +3,127 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\EventCategory;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\createEventRequest;
-use App\Http\Requests\UpdateEventRequest;
+use Illuminate\Support\Facades\Auth;
 
+class EventController extends Controller {
+    function allevent() {
+        $events = Event::where( 'user_id', Auth::id() )->latest()->get();
+        return view( 'admin.events.all_events', compact( 'events' ) );
+    }
+    function addevent() {
+        $eventCategories = EventCategory::where( 'user_id', Auth::id() )->orderBy( 'name', 'ASC' )->get();
+        return view( 'admin.events.add_event', compact( 'eventCategories' ) );
+    }
+    function storeevent( Request $request ) {
+        $request->validate(
+            [
+                'title'             => 'required|string',
+                'event_category_id' => 'required',
+                'description'       => 'required',
+                'date'              => 'required',
+                'time'              => 'required',
+                'location'          => 'required',
+            ],
+            [
+                'title.required'             => 'Event Title is required',
+                'event_category_id.required' => 'Event Category is required',
+            ]
+        );
 
-class EventController extends Controller
-{
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $events = Event::paginate(3);
-        return view('events.index', compact('events'));
+        $imageUrl = null;
+
+        if ( $request->file( 'image' ) ) {
+            $image = $request->file( 'image' );
+            $imageUrl = hexdec( uniqid() ) . '.' . $image->getClientOriginalExtension();
+            $image->move( public_path( 'upload/event' ), $imageUrl );
+        }
+
+        Event::create( [
+            'user_id'           => Auth::id(),
+            'title'             => $request->title,
+            'event_category_id' => $request->event_category_id,
+            'description'       => $request->description,
+            'date'              => $request->date,
+            'time'              => $request->time,
+            'location'          => $request->location,
+            'image'             => $imageUrl,
+        ] );
+
+        $notification = [
+            'message'    => "Event Added Successfully",
+            'alert-type' => 'success',
+        ];
+        return redirect()->route( 'all.event' )->with( $notification );
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $events = Event::all();
-        return view('events.create', compact('events'));
+    function editevent( Request $request ) {
+        $event = Event::where( ['user_id' => Auth::id(), 'id' => $request->id] )->first();
+        $eventCategories = EventCategory::where( 'user_id', Auth::id() )->orderBy( 'name', 'ASC' )->get();
+        return view( 'admin.events.edit_event', compact( 'event', 'eventCategories' ) );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(createEventRequest $request)
-    {
-        $data = $request->validated();
-        $data['user_id'] = auth()->id();
-        $event = Event::create($data);
-        return redirect()->route('events.index');
+    function updateevent( Request $request ) {
+        $event = Event::where( ['user_id' => Auth::id(), 'id' => $request->id] )->first();
+        //request validation
+        $request->validate( [
+            'title' => 'required|string',
+        ], [
+            'title.required' => 'Event title is required',
+        ] );
+        // update event
+        if ( $request->file( 'image' ) ) {
+            $image = $request->file( 'image' );
+            if ( $event->image && file_exists( public_path( 'upload/event/' . $event->image ) ) ) {
+                unlink( str_replace( '\\', '/', public_path( 'upload/event/' . $event->image ) ) );
+            }
+            $imageUrl = hexdec( uniqid() ) . '.' . $image->getClientOriginalExtension();
+            $image->move( public_path( 'upload/event' ), $imageUrl );
+
+            $event->update( [
+                'title'             => $request->title,
+                'event_category_id' => $request->event_category_id,
+                'description'       => $request->description,
+                'date'              => $request->date,
+                'time'              => $request->time,
+                'location'          => $request->location,
+                'image'             => $imageUrl,
+            ] );
+            $notification = [
+                'message'    => "event Updated With image Successfully",
+                'alert-type' => 'success',
+            ];
+        } else {
+            $event->update( [
+                'title'             => $request->title,
+                'event_category_id' => $request->event_category_id,
+                'description'       => $request->description,
+                'date'              => $request->date,
+                'time'              => $request->time,
+                'location'          => $request->location,
+            ] );
+            $notification = [
+                'message'    => "event Updated Without image Successfully",
+                'alert-type' => 'success',
+            ];
+        }
+
+        return redirect()->route( 'all.event' )->with( $notification );
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Event $event)
-    {
-        $events = Event::all();
-        return view('events.edit', compact('events', 'event'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateEventRequest $request, Event $event): RedirectResponse
-    {
-
-        $data = $request->validated();
-        $data['user_id'] = auth()->id();
-        $event->update($data);
-        return redirect()->route('events.index');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Event $event)
-    {
+    function deleteevent( Request $request ) {
+        $event = Event::where( ['user_id' => Auth::id(), 'id' => $request->id] )->first();
+        if ( $event->image && file_exists( public_path( 'upload/event/' . $event->image ) ) ) {
+            unlink( str_replace( '\\', '/', public_path( 'upload/event/' . $event->image ) ) );
+        }
         $event->delete();
-        return redirect()->route('events.index');
+
+        $notification = [
+            'message'    => "Event Deleted Successfully",
+            'alert-type' => 'success',
+        ];
+
+        return redirect()->back()->with( $notification );
     }
 }
